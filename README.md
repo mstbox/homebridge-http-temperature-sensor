@@ -1,7 +1,10 @@
 # homebridge-http-temperature-sensor Plugin
 
 This [Homebridge](https://github.com/nfarina/homebridge) plugin can be used integrate your temperature sensor which has a 
-http api into HomeKit.
+http api into HomeKit. It's a slight mod of Andreas Bauer's homebridge-http-temperature-sensor that works with temperature values without a decimal point.
+This version is for temperatures in Celsius only as I re-used all lines mentioning Fahrenheit.
+Works a treat with older TinyControl (https://tinycontrol.pl/en/) boards and their XML data.
+
 
 ## Installation
 
@@ -62,7 +65,7 @@ The configuration can contain the following properties:
 * `unit` \<string\> **optional** \(Default: **"celsius**\): Defines unit expected from the http server. The following 
     are available:
     * **"celsius"**: Using celsius to calculate temperature
-    * **"fahrenheit"**: Using fahrenheit to calculate temperature
+    * **"nonfloat"**: Same as above but in cases where the temperature is presented as an integer - e.g. 20.7 Celsius is shown as 207 - that value will simply be divided by 10
 
 ##### Advanced configuration options:
 
@@ -70,6 +73,29 @@ The configuration can contain the following properties:
     temperature is extracted from the body of the http response from the `getUrl`. The group which should
     be extracted can be configured with the `patternGroupToExtract` property.  
     [More about regex pattern](https://www.w3schools.com/jsref/jsref_obj_regexp.asp).
+    I'm going to make it easy to understand as I've seen multiple posts on the internet where people couldn't get it to work.
+
+    My text output looks like this:
+    <response>
+    <out0>0</out0>
+    <out1>0</out1>
+    <out2>0</out2>
+    <out3>0</out3>
+    <out4>0</out4>
+    <out5>1</out5>
+    <ia0>363</ia0>
+    <ia1>224</ia1>
+    <ia2>-600</ia2>
+    <ia3>-600</ia3>
+
+    The temperature is hiding under <ia1> and it's 22.4C
+    To extract it the status pattern has to look like this:
+  
+    "statusPattern": "(<ia1>)(-?[0-9]{1,3})"
+
+    In other words we're looking for a text string that begins with <ia1> and then has digits ([0-9]), we want to collect three characters, starting from the first digit ({1,3})
+
+  
 * `patternGroupToExtract` \<number\> **optional** \(Default: **1**\): Defines the regex group of which the temperature 
     is extracted.
 * `statusCache` \<number\> **optional** \(Default: **0**\): Defines the amount of time in milliseconds a queried value 
